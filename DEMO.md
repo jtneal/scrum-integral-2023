@@ -54,13 +54,11 @@ stack. Also, I should note, today I'm building everything in a monorepo because
 it's easier for demo purposes, but that is certainly not a requirement.
 
 ```sh
-npx nx generate @nrwl/angular:app shell --mfe --mfeType host --style scss --routing true
+npx nx g @nrwl/angular:host shell --style scss
 ```
 
-Next up, we're using the `@nrwl/angular` plugin to generate a new Angular
-application. We're calling this new application `shell` and telling Nx to
-generate a Module Federation configuration as well. You can see here we're
-passing the `mfeType` as `host` which tells Nx this is a shell application.
+Next up, we're using the `@nrwl/angular` plugin to generate a new Module
+Federation host Angular application. We're calling this new application `shell`.
 
 This command is going to take awhile to complete, so let's take some time to
 review more info on Nx.
@@ -93,7 +91,7 @@ a great starting point for anyone new.
 Hey, looks like it finally finished!
 
 ```sh
-npx nx generate @nrwl/angular:app locations --mfe --mfeType remote --port 4201 --host shell --style scss --routing true
+npx nx generate @nrwl/angular:remote locations --port 4201 --host shell --style scss
 ```
 
 Now we're ready to generate our individual micro frontend applications. We're
@@ -103,14 +101,14 @@ a custom port number. This is important to enable us to run our micro frontends
 simultaneously.
 
 ```sh
-npx nx generate @nrwl/angular:app menu --mfe --mfeType remote --port 4202 --host shell --style scss --routing true
+npx nx generate @nrwl/angular:remote menu --port 4202 --host shell --style scss
 ```
 
 Now we're generating the menu micro frontend with all of the same settings,
 other than the port number.
 
 ```sh
-npx nx generate @nrwl/angular:app order --mfe --mfeType remote --port 4203 --host shell --style scss --routing true
+npx nx generate @nrwl/angular:remote order --port 4203 --host shell --style scss
 ```
 
 Last application now, this will generate our order micro frontend.
@@ -134,61 +132,14 @@ the standalone mode which I'll demo for you shortly.
 Next, we have a few code changes to make. I'm going to copy/paste most of this
 code to save time.
 
-### Update MFE app.component.html
-
-- apps/locations/src/app/app.component.html
-- apps/menu/src/app/app.component.html
-- apps/order/src/app/app.component.html
-
-```html
-<router-outlet></router-outlet>
-```
-
-### Update Shell app.component.html
-
-```html
-<main>
-  <h2>Links</h2>
-  <ul>
-    <li><a routerLink="">Home</a></li>
-    <li><a routerLink="locations">Locations</a></li>
-    <li><a routerLink="menu">Menu</a></li>
-    <li><a routerLink="order">Order</a></li>
-  </ul>
-</main>
-```
-
-### Update MFE app.module.ts
-
-- apps/locations/src/app/app.module.ts
-- apps/menu/src/app/app.module.ts
-- apps/order/src/app/app.module.ts
-
-```ts
-RouterModule.forRoot([
-  {
-    path: '',
-    loadChildren: () => import('./remote-entry/entry.module').then((m) => m.RemoteEntryModule),
-  },
-], { initialNavigation: 'enabledBlocking' }),
-```
-
-### Update MFE entry.module.ts
-
-- apps/locations/src/app/remote-entry/entry.module.ts
-- apps/menu/src/app/remote-entry/entry.module.ts
-- apps/order/src/app/remote-entry/entry.module.ts
-
-Replace `BrowserModule` with `CommonModule`.
-
-### Update Locations entry.component.ts
+## Update apps/locations/src/app/remote-entry/nx-welcome.component.ts
 
 ```html
 <h2>Locations</h2>
 <p>Our locations system is currently undergoing scheduled maintenance.</p>
 ```
 
-### Update Menu entry.component.ts
+## Update apps/menu/src/app/remote-entry/nx-welcome.component.ts
 
 ```html
 <h2>Menu</h2>
@@ -200,14 +151,14 @@ Replace `BrowserModule` with `CommonModule`.
 <router-outlet></router-outlet>
 ```
 
-### Update Order entry.component.ts
+## Update apps/order/src/app/remote-entry/nx-welcome.component.ts
 
 ```html
 <h2>Order</h2>
 <p>Our online order system is currently undergoing scheduled maintenance.</p>
 ```
 
-### Update Menu entry.module.ts
+## Update apps/menu/src/app/remote-entry/entry.routes.ts
 
 ```ts
 children: [
@@ -226,30 +177,47 @@ children: [
 ],
 ```
 
+## Update apps/menu/src/app/remote-entry/entry.module.ts
+
+```ts
+import { BreakfastComponent } from './breakfast/breakfast.component';
+import { LunchComponent } from './lunch/lunch.component';
+import { DinnerComponent } from './dinner/dinner.component';
+```
+
+## Update apps/shell/src/app/app.routes.ts
+
+```ts
+// {
+//   path: '',
+//   component: NxWelcomeComponent,
+// },
+```
+
 ## Run
 
 ```sh
-npx nx run shell:serve-mfe
+npx nx serve shell --devRemotes locations,menu,order
 ```
 
 This is going to spin up all 4 applications, so it may take awhile. Let's use
 that time to review some of the Module Federation code that was auto-generated
 by Nx.
 
-### Open apps/shell/webpack.config.js
+### Open apps/shell/module-federation.config.js
 
-This is the Webpack config that Nx generated for us. This is where Module
-Federation is configured. You can see here it's setup to load 3 remotes:
-locations, menu, and order. Obviously, these correspond to our 3 micro
-frontends. There's also this shared section. This is where you configure any
-shared libraries used by all of your applications. This will ensure they are
-only loaded once and dramatically decrease your bundle sizes.
+This is the Module Federation config that Nx generated for us. You can see here
+it's setup to load 3 remotes: locations, menu, and order. Obviously, these
+correspond to our 3 micro frontends. Also, by default, Nx will share all
+libraries as Singletons across all of your remotes. This will ensure they are
+only loaded once and dramatically decrease your bundle sizes. You can, however,
+override this behavior by adding a shared section to this configuration.
 
-### Open apps/order/webpack.config.js
+### Open apps/order/module-federation.config.js
 
-You can see here that the remote Webpack config is very similar. Instead of
-specifying remotes, it instead exposes our remote entry module. This is what
-enables the shell to import it using a dynamic import.
+You can see here that the remote Module Federation config is very similar.
+Instead of specifying remotes, it instead exposes our remote entry module. This
+is what enables the shell to import it using a dynamic import.
 
 ## Visual
 
@@ -296,11 +264,9 @@ ensure a solid end-to-end integration.
 While this has been a super simple example, you can use a micro frontend
 architecture for even the most complex of applications. We started our micro
 frontend journey back in 2019 using a microsite or micro-app approach. We then
-transitioned to the custom element or web component approach. This year, we
+transitioned to the custom element or web component approach. Then, we finally
 migrated to using Module Federation and we're very happy with it and plan to
 stick with it for the foreseeable future.
-
-How about I show you our portal as a real world example? 
 
 Okay, that's all for the live demo, so let's switch back to the slides to wrap
 up with some closing thoughts.
