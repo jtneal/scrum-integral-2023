@@ -10,12 +10,12 @@ down, screenshot, or recall any of this from memory, because you don't!
 So, today we're going to build a website for a fictitious restaurant called Nx
 Grill. We're going to utilize a micro frontend architecture using Module
 Federation with Angular and Nx. If you want to follow along, please be aware
-that I am using the latest version of Node LTS, 18.15.0, as well as NPM 9.5.0.
+that I am using the latest version of Node LTS, 18.16.0, as well as NPM 9.6.4.
 
 | Software    | Version |
 | ----------- | ------- |
-| Node        | 18.15.0 |
-| NPM         | 9.5.0   |
+| Node        | 18.16.0 |
+| NPM         | 9.6.4   |
 
 ## Architecture
 
