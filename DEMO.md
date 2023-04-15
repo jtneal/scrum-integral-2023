@@ -24,7 +24,7 @@ that I am using the latest version of Node LTS, 18.16.0, as well as NPM 9.6.4.
 Here is a high level architecture of what we're about to build. You can see
 we've got our hungry user here who is probably looking to order a Cheeseburger.
 We've got a shell application that is composing everything into a single
-cohesisve experience. Then we've got our 3 micro frontends: locations, menu, and
+cohesive experience. Then we've got our 3 micro frontends: locations, menu, and
 order.
 
 ## Generate
